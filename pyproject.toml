@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "testvirginmedia"
+version = "0.1.0"
+description = "Test excersice for Virgin Media"
+authors = ["Alexander Chaptykov <achaptykov@provectus.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "<3.13,>=3.9"
+pandas = "^2.1.1"
+xgboost = "^2.0.0"
+scikit-learn = "^1.3.1"
+category-encoders = "^2.6.2"
+fsspec = "^2023.9.2"
+gcsfs = "^2023.9.2"
+google-cloud-storage = "^2.12.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
