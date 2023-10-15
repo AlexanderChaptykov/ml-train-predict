@@ -16,7 +16,7 @@ target2int = {"Yes": 1, "No": 0}
 
 
 def read_from_gc(path):
-    fs = gcsfs.GCSFileSystem(project='my-project')
+    fs = gcsfs.GCSFileSystem(project="my-project")
     with fs.open(path) as f:
         df = pd.read_csv(f)
     return df
@@ -32,8 +32,21 @@ def get_xy(df, test=False):
 class Predict:
     pipe: Pipeline
     model: XGBClassifier
-    cols = ['Type', 'Age', 'Breed1', 'Gender', 'Color1', 'Color2', 'MaturitySize',
-            'FurLength', 'Vaccinated', 'Sterilized', 'Health', 'Fee', 'PhotoAmt']
+    cols = [
+        "Type",
+        "Age",
+        "Breed1",
+        "Gender",
+        "Color1",
+        "Color2",
+        "MaturitySize",
+        "FurLength",
+        "Vaccinated",
+        "Sterilized",
+        "Health",
+        "Fee",
+        "PhotoAmt",
+    ]
     int2target = dict(zip(target2int.values(), target2int.keys()))
     model_file = "model"
     pipe_file = "pipe.pkl"
@@ -64,28 +77,63 @@ def log_metrics(y_true, y_pred):
     print("Recall", recall_score(y_true, y_pred, pos_label="Yes"))
 
 
-def main(gc_path="gs://cloud-samples-data/ai-platform-unified/datasets/tabular/petfinder-tabular-classification.csv",
-         out_path="artifacts"
-         ):
+def main(
+    gc_path="gs://cloud-samples-data/ai-platform-unified/datasets/tabular/petfinder-tabular-classification.csv",
+    out_path="artifacts",
+):
     df = read_from_gc(gc_path)
 
-    train, val_test = train_test_split(df, train_size=.6, stratify=df[target_col])
-    val, test = train_test_split(val_test, train_size=.5, stratify=val_test[target_col])
+    train, val_test = train_test_split(df, train_size=0.6, stratify=df[target_col])
+    val, test = train_test_split(
+        val_test, train_size=0.5, stratify=val_test[target_col]
+    )
 
     train, train_y = get_xy(train)
     val, val_y = get_xy(val)
     test, test_y = get_xy(test, test=True)
 
-    pipe_preprocess = Pipeline([
-        ('count', CountEncoder(cols=["Breed1"])),
-        ('ordinal', OrdinalEncoder(
-            mapping=[
-                {"col": "MaturitySize", "mapping": {None: 0, 'Small': 1, 'Medium': 2, 'Large': 3}},
-                {"col": "FurLength", "mapping": {None: 0, 'Short': 1, 'Medium': 2, 'Long': 3}},
-                {"col": "Health", "mapping": {None: 0, 'Serious Injury': 1, 'Minor Injury': 2, 'Healthy': 3}}
-            ])),
-        ("ohe", OneHotEncoder(cols=["Type", "Gender", "Color1", "Color2", "Vaccinated", "Sterilized"])),
-    ])
+    pipe_preprocess = Pipeline(
+        [
+            ("count", CountEncoder(cols=["Breed1"])),
+            (
+                "ordinal",
+                OrdinalEncoder(
+                    mapping=[
+                        {
+                            "col": "MaturitySize",
+                            "mapping": {None: 0, "Small": 1, "Medium": 2, "Large": 3},
+                        },
+                        {
+                            "col": "FurLength",
+                            "mapping": {None: 0, "Short": 1, "Medium": 2, "Long": 3},
+                        },
+                        {
+                            "col": "Health",
+                            "mapping": {
+                                None: 0,
+                                "Serious Injury": 1,
+                                "Minor Injury": 2,
+                                "Healthy": 3,
+                            },
+                        },
+                    ]
+                ),
+            ),
+            (
+                "ohe",
+                OneHotEncoder(
+                    cols=[
+                        "Type",
+                        "Gender",
+                        "Color1",
+                        "Color2",
+                        "Vaccinated",
+                        "Sterilized",
+                    ]
+                ),
+            ),
+        ]
+    )
     model = XGBClassifier()
 
     train = pipe_preprocess.fit_transform(train)

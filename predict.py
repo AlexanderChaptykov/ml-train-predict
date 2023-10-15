@@ -3,9 +3,11 @@ from pathlib import Path
 from train import Predict, read_from_gc
 
 
-def main(gc_path="gs://cloud-samples-data/ai-platform-unified/datasets/tabular/petfinder-tabular-classification.csv",
-         model_dir="artifacts",
-         out_path=Path("output/results.csv")):
+def main(
+    gc_path="gs://cloud-samples-data/ai-platform-unified/datasets/tabular/petfinder-tabular-classification.csv",
+    model_dir="artifacts",
+    out_path=Path("output/results.csv"),
+):
     df = read_from_gc(gc_path)
 
     predictor = Predict.from_path(model_dir)
