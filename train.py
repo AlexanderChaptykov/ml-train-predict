@@ -28,6 +28,10 @@ def get_xy(df, test=False):
     return df.drop(target_col, axis=1), df[target_col].map(target2int)
 
 
+class WrongDataset(Exception):
+    pass
+
+
 @dataclasses.dataclass
 class Predict:
     pipe: Pipeline
@@ -52,6 +56,8 @@ class Predict:
     pipe_file = "pipe.pkl"
 
     def __call__(self, x: pd.DataFrame):
+        if not set(self.cols).issubset(set(x.columns)):
+            raise WrongDataset
         x = x[self.cols]
         x = self.pipe.transform(x)
         x = self.model.predict(x)
